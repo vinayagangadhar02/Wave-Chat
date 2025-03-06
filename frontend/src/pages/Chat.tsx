@@ -1,0 +1,645 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
+import {
+  Bell,
+  Check,
+  ChevronLeft,
+  FileImage,
+  LogOut,
+  MessageSquare,
+  MoreHorizontal,
+  Phone,
+  Plus,
+  Search,
+  Send,
+  Settings,
+  Smile,
+  User,
+  Video,
+} from "lucide-react"
+
+// Sample data for conversations
+const conversations = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Hey, how's it going?",
+    time: "10:30 AM",
+    unread: 2,
+    online: true,
+  },
+  {
+    id: 2,
+    name: "Design Team",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Meeting at 3 PM",
+    time: "Yesterday",
+    unread: 0,
+    group: true,
+    members: ["Sarah Johnson", "Alex Thompson", "You"],
+  },
+  {
+    id: 3,
+    name: "Alex Thompson",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Can you send me the files?",
+    time: "Yesterday",
+    unread: 0,
+    online: false,
+  },
+  {
+    id: 4,
+    name: "Project Alpha",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Let's discuss the timeline",
+    time: "Monday",
+    unread: 5,
+    group: true,
+    members: ["Sarah Johnson", "Alex Thompson", "Michael Chen", "You"],
+  },
+  {
+    id: 5,
+    name: "Michael Chen",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Thanks for your help!",
+    time: "Monday",
+    unread: 0,
+    online: true,
+  },
+  {
+    id: 6,
+    name: "Jessica Williams",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Looking forward to seeing you!",
+    time: "Last week",
+    unread: 0,
+    online: false,
+  },
+  {
+    id: 7,
+    name: "Marketing Team",
+    avatar: "/placeholder.svg?height=40&width=40",
+    lastMessage: "Campaign updates",
+    time: "Last week",
+    unread: 0,
+    group: true,
+    members: ["Jessica Williams", "Michael Chen", "You"],
+  },
+]
+
+// Sample messages for a conversation
+const sampleMessages = [
+  {
+    id: 1,
+    sender: "Sarah Johnson",
+    content: "Hey there! How's your day going?",
+    time: "10:30 AM",
+    isUser: false,
+  },
+  {
+    id: 2,
+    sender: "You",
+    content: "Hi Sarah! It's going well, thanks for asking. Just finishing up some work.",
+    time: "10:32 AM",
+    isUser: true,
+  },
+  {
+    id: 3,
+    sender: "Sarah Johnson",
+    content: "That's great to hear! Are you still planning to join the team meeting later today?",
+    time: "10:33 AM",
+    isUser: false,
+  },
+  {
+    id: 4,
+    sender: "You",
+    content: "Yes, definitely! I've prepared some notes for the discussion.",
+    time: "10:35 AM",
+    isUser: true,
+  },
+  {
+    id: 5,
+    sender: "Sarah Johnson",
+    content: "Perfect! Looking forward to hearing your thoughts. By the way, have you seen the latest project updates?",
+    time: "10:36 AM",
+    isUser: false,
+  },
+  {
+    id: 6,
+    sender: "You",
+    content: "Not yet, I'll check them out before the meeting. Anything specific I should focus on?",
+    time: "10:38 AM",
+    isUser: true,
+  },
+  {
+    id: 7,
+    sender: "Sarah Johnson",
+    content: "The new design mockups are really impressive. I think they align well with what we discussed last week.",
+    time: "10:40 AM",
+    isUser: false,
+  },
+  {
+    id: 8,
+    sender: "Sarah Johnson",
+    content: "Also, the client feedback has been positive so far!",
+    time: "10:40 AM",
+    isUser: false,
+  },
+]
+
+export default function ChatPage() {
+  const [activeConversation, setActiveConversation] = useState<any>(null)
+  const [messages, setMessages] = useState<any>([])
+  const [newMessage, setNewMessage] = useState<any>("")
+  const [isTyping, setIsTyping] = useState<any>(false)
+  const [searchQuery, setSearchQuery] = useState<any>("")
+  const [mobileView, setMobileView] = useState<any>(false)
+  const messagesEndRef = useRef<any>(null)
+
+  // Filter conversations based on search query
+  const filteredConversations = conversations.filter((conversation) =>
+    conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  // Set active conversation and load messages
+  useEffect(() => {
+    if (activeConversation) {
+      setMessages(sampleMessages)
+      setMobileView(true)
+    }
+  }, [activeConversation])
+
+  // Auto-scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // Handle sending a new message
+  const handleSendMessage = (e:any) => {
+    e.preventDefault()
+    if (newMessage.trim() === "") return
+
+    const newMsg = {
+      id: messages.length + 1,
+      sender: "You",
+      content: newMessage,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      isUser: true,
+    }
+
+    setMessages([...messages, newMsg])
+    setNewMessage("")
+
+    // Simulate response with typing indicator
+    setIsTyping(true)
+    setTimeout(() => {
+      const response = {
+        id: messages.length + 2,
+        sender: activeConversation?.name || "User",
+        content: "Thanks for your message! I'll get back to you soon.",
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isUser: false,
+      }
+      setMessages((prev:any) => [...prev, response])
+      setIsTyping(false)
+    }, 2000)
+  }
+
+  return (
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Mobile navigation */}
+      <Sheet open={!mobileView} onOpenChange={setMobileView}>
+        <SheetContent side="left" className="p-0 w-full max-w-[320px] sm:max-w-sm">
+          <ChatSidebar
+            conversations={filteredConversations}
+            activeConversation={activeConversation}
+            setActiveConversation={setActiveConversation}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop sidebar */}
+      <div className={cn("hidden md:block w-80 border-r bg-background", mobileView && "md:block")}>
+        <ChatSidebar
+          conversations={filteredConversations}
+          activeConversation={activeConversation}
+          setActiveConversation={setActiveConversation}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+      </div>
+
+      {/* Main chat area */}
+      <div className="flex flex-1 flex-col">
+        {activeConversation ? (
+          <>
+            {/* Chat header */}
+            <div className="flex items-center justify-between border-b p-4">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileView(false)}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Avatar>
+                  <AvatarImage src={activeConversation.avatar} alt={activeConversation.name} />
+                  <AvatarFallback>{activeConversation.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="font-semibold">{activeConversation.name}</h2>
+                  {activeConversation.online && !activeConversation.group && (
+                    <p className="text-xs text-muted-foreground flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span> Online
+                    </p>
+                  )}
+                  {activeConversation.group && (
+                    <p className="text-xs text-muted-foreground">Group · {activeConversation.members.length} members</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Call</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Video className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Video Call</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>More options</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {messages.map((message:any) => (
+                  <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
+                    <div className={`flex max-w-[70%] ${message.isUser ? "flex-row-reverse" : "flex-row"}`}>
+                      {!message.isUser && (
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarImage src={activeConversation.avatar} alt={message.sender} />
+                          <AvatarFallback>{message.sender.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div>
+                        <div
+                          className={`rounded-lg px-4 py-2 ${
+                            message.isUser ? "bg-primary text-primary-foreground" : "bg-blue-100 dark:bg-blue-900/50"
+                          }`}
+                        >
+                          {message.content}
+                        </div>
+                        <div
+                          className={`text-xs text-muted-foreground mt-1 ${
+                            message.isUser ? "text-right" : "text-left"
+                          }`}
+                        >
+                          {message.time}
+                          {message.isUser && (
+                            <span className="ml-1">
+                              <Check className="inline h-3 w-3 text-blue-500" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex max-w-[70%]">
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarImage src={activeConversation.avatar} alt={activeConversation.name} />
+                        <AvatarFallback>{activeConversation.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="rounded-lg bg-blue-100 px-4 py-2 dark:bg-blue-900/50">
+                        <div className="flex space-x-1">
+                          <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500"></div>
+                          <div
+                            className="h-2 w-2 animate-bounce rounded-full bg-blue-500"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="h-2 w-2 animate-bounce rounded-full bg-blue-500"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Message input */}
+            <div className="border-t p-4 bg-background">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Add attachment</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                        <FileImage className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Send image</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
+                />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                        <Smile className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Emoji</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={newMessage.trim() === ""}
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </form>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex flex-col items-center max-w-md text-center p-6">
+              <MessageSquare className="h-12 w-12 text-blue-600 mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Welcome to WaveChat</h2>
+              <p className="text-muted-foreground mb-6">
+                Select a conversation from the sidebar or start a new one to begin chatting.
+              </p>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="mr-2 h-4 w-4" />
+                New Conversation
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ChatSidebar({ conversations, activeConversation, setActiveConversation, searchQuery, setSearchQuery }:any) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">WaveChat</h1>
+          <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Bell className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Notifications</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Settings</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search conversations"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
+          />
+        </div>
+      </div>
+      <Tabs defaultValue="all" className="w-full">
+        <div className="px-4 pt-2">
+          <TabsList className="w-full">
+            <TabsTrigger value="all" className="flex-1">
+              All
+            </TabsTrigger>
+            <TabsTrigger value="unread" className="flex-1">
+              Unread
+            </TabsTrigger>
+            <TabsTrigger value="groups" className="flex-1">
+              Groups
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="all" className="m-0">
+          <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
+            <div className="p-2 space-y-1">
+              {conversations.map((conversation:any) => (
+                <button
+                  key={conversation.id}
+                  className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
+                    activeConversation?.id === conversation.id
+                      ? "bg-blue-100 dark:bg-blue-900/50"
+                      : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                  }`}
+                  onClick={() => setActiveConversation(conversation)}
+                >
+                  <div className="relative">
+                    <Avatar>
+                      <AvatarImage src={conversation.avatar} alt={conversation.name} />
+                      <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {conversation.online && !conversation.group && (
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
+                    )}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium truncate">{conversation.name}</h3>
+                      <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
+                      {conversation.unread > 0 && <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+        <TabsContent value="unread" className="m-0">
+          <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
+            <div className="p-2 space-y-1">
+              {conversations
+                .filter((conversation:any) => conversation.unread > 0)
+                .map((conversation:any) => (
+                  <button
+                    key={conversation.id}
+                    className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
+                      activeConversation?.id === conversation.id
+                        ? "bg-blue-100 dark:bg-blue-900/50"
+                        : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                    }`}
+                    onClick={() => setActiveConversation(conversation)}
+                  >
+                    <div className="relative">
+                      <Avatar>
+                        <AvatarImage src={conversation.avatar} alt={conversation.name} />
+                        <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      {conversation.online && !conversation.group && (
+                        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium truncate">{conversation.name}</h3>
+                        <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
+                        <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+        <TabsContent value="groups" className="m-0">
+          <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
+            <div className="p-2 space-y-1">
+              {conversations
+                .filter((conversation:any) => conversation.group)
+                .map((conversation:any) => (
+                  <button
+                    key={conversation.id}
+                    className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
+                      activeConversation?.id === conversation.id
+                        ? "bg-blue-100 dark:bg-blue-900/50"
+                        : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                    }`}
+                    onClick={() => setActiveConversation(conversation)}
+                  >
+                    <div className="relative">
+                      <Avatar>
+                        <AvatarImage src={conversation.avatar} alt={conversation.name} />
+                        <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium truncate">{conversation.name}</h3>
+                        <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
+                        {conversation.unread > 0 && (
+                          <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
+      <div className="mt-auto border-t p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Your Avatar" />
+              <AvatarFallback>YA</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">Your Name</p>
+              <p className="text-xs text-muted-foreground">Available</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Profile</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Sign out</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
