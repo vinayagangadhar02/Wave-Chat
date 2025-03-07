@@ -9,22 +9,38 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Github, Mail, User } from "lucide-react"
+import axiosInstance from "@/axios/axios"
 
 export default function SignUp() {
   const navigate=useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const[formData,setFormData]=useState({
+    firstName:"",
+    lastName:"",
+    email:"",
+    password:""
+  })
+  
 
-  const handleSubmit = async (e:any) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate("/chat")
-    }, 1500)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+  
+    try {
+      const response = await axiosInstance.post("/auth/signup", {
+        f_name: formData.firstName,
+        l_name: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+  
+      console.log("User registered:", response.data);
+      navigate("/chat"); 
+    } catch (error) {
+      console.error("Error signing up:", error);
+    }
+  };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 sm:px-6 lg:px-8">
@@ -49,6 +65,8 @@ export default function SignUp() {
                     id="firstName"
                     placeholder="John"
                     required
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     className="pl-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                   />
                 </div>
@@ -59,6 +77,8 @@ export default function SignUp() {
                   id="lastName"
                   placeholder="Doe"
                   required
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className="border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
               </div>
@@ -74,6 +94,8 @@ export default function SignUp() {
                   autoCapitalize="none"
                   autoComplete="email"
                   autoCorrect="off"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   className="pl-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
@@ -96,13 +118,15 @@ export default function SignUp() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   className="pr-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Password must be at least 8 characters long</p>
+              <p className="text-xs text-muted-foreground">Password must be at least 6 characters long</p>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import axiosInstance from "@/axios/axios";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"
@@ -12,20 +13,30 @@ import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Github, Mail } from "lucide-react"
 
 export default function SignIn() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const[formData,setFormData]=useState({
+    email:"",
+    password:""
+  })
 
-  const handleSubmit = async (e:any) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+  
+    try {
+      const response = await axiosInstance.post("/auth/signin", {
+        email: formData.email,
+        password: formData.password,
+      });
+  
+      console.log("User logged in", response.data);
+      navigate("/chat"); 
 
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate("/chat")
-    }, 1500)
-  }
+    } catch (error) {
+      console.error("Error signing up:", error);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 sm:px-6 lg:px-8">
@@ -54,6 +65,8 @@ export default function SignIn() {
                   autoCapitalize="none"
                   autoComplete="email"
                   autoCorrect="off"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   className="pl-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
@@ -81,6 +94,8 @@ export default function SignIn() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e)=>setFormData({...formData,password:e.target.value})}
                   required
                   className="pr-10 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
@@ -92,7 +107,7 @@ export default function SignIn() {
                 Remember me
               </Label>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
