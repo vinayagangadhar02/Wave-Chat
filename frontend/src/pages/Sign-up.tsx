@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -9,18 +9,22 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Github, Mail, User } from "lucide-react"
+import { toast } from "sonner";
 import axiosInstance from "@/axios/axios"
 
 export default function SignUp() {
   const navigate=useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error,setError]=useState("")
   const[formData,setFormData]=useState({
     firstName:"",
     lastName:"",
     email:"",
     password:""
   })
+
+
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,13 +37,29 @@ export default function SignUp() {
         email: formData.email,
         password: formData.password,
       });
-  
+       
       console.log("User registered:", response.data);
       navigate("/chat"); 
-    } catch (error) {
-      console.error("Error signing up:", error);
+
+    } 
+    catch (error:any) {
+      setError(error.response?.data?.error)
     }
   };
+  
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        position: "top-center",
+        duration: 3000,
+        style: {
+          color: "red", 
+          
+          fontWeight: "bold",
+        },
+      });
+    }
+  }, [error]);
   
 
   return (
@@ -55,6 +75,7 @@ export default function SignUp() {
           <CardDescription className="text-center">Enter your information to create a new account</CardDescription>
         </CardHeader>
         <CardContent>
+      
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -90,7 +111,7 @@ export default function SignUp() {
                 <Input
                   id="email"
                   placeholder="name@example.com"
-                  type="email"
+                  type="text"
                   autoCapitalize="none"
                   autoComplete="email"
                   autoCorrect="off"

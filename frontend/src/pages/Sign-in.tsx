@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axiosInstance from "@/axios/axios";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -11,15 +11,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Github, Mail } from "lucide-react"
+import { toast } from "sonner";
+
 
 export default function SignIn() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error,setError]=useState(null)
   const[formData,setFormData]=useState({
     email:"",
     password:""
   })
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
@@ -29,30 +34,45 @@ export default function SignIn() {
         email: formData.email,
         password: formData.password,
       });
-  
-      console.log("User logged in", response.data);
+      
+      localStorage.setItem("jwttoken",response.data.token)
       navigate("/chat"); 
 
-    } catch (error) {
-      console.error("Error signing up:", error);
+    } catch (error:any) {
+      setError(error.response?.data?.error)
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        position: "top-center",
+        duration: 3000,
+      });
+    }
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+      
           <div className="flex justify-center mb-2">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
               <span className="text-white font-bold text-lg">W</span>
+              
             </div>
+  
           </div>
+         
           <CardTitle className="text-2xl font-bold text-center">Sign in to WaveChat</CardTitle>
           <CardDescription className="text-center">
             Enter your email and password to access your account
+          
           </CardDescription>
         </CardHeader>
         <CardContent>
+        
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -61,7 +81,7 @@ export default function SignIn() {
                 <Input
                   id="email"
                   placeholder="name@example.com"
-                  type="email"
+                  type="text"
                   autoCapitalize="none"
                   autoComplete="email"
                   autoCorrect="off"

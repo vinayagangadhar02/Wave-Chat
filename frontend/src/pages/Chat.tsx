@@ -4,29 +4,27 @@ import { useState, useRef, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import Logout from "@/comp/logOut"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import EmojiPicker from 'emoji-picker-react';
 import {
-  Bell,
   Check,
   ChevronLeft,
   FileImage,
-  LogOut,
   MessageSquare,
-  MoreHorizontal,
-  Phone,
   Plus,
   Search,
   Send,
-  Settings,
   Smile,
   User,
-  Video,
+  
 } from "lucide-react"
+import axiosInstance from "@/axios/axios"
 
 // Sample data for conversations
 const conversations = [
@@ -163,10 +161,48 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<any>([])
   const [newMessage, setNewMessage] = useState<any>("")
   const [isTyping, setIsTyping] = useState<any>(false)
-  const [searchQuery, setSearchQuery] = useState<any>("")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [searchedContacts,setSearchedContacts]=useState([])
   const [mobileView, setMobileView] = useState<any>(false)
   const messagesEndRef = useRef<any>(null)
+  const [message, setMessage] = useState<any>("")
+  const emojiRef = useRef<any>(null)
+  const[emojiPickerOpen,setEmojiPickerOpen]=useState<boolean>(false)
+  
+  const searchContacts = async () => {
+    try {
+      if (searchQuery.length > 0) {
+        const response = await axiosInstance.get(`/search`, {
+          params: { searchQuery }
+        });
+  
+        if (response?.status === 200) { 
+          setSearchedContacts(response.data.contacts); 
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
+  
 
+
+useEffect(()=>{
+  function handleClickOutside(event:any){
+    if(emojiRef.current && !emojiRef.current.contains(event.target)){
+      setEmojiPickerOpen(false)
+    }
+  }
+  document.addEventListener("mousedown",handleClickOutside);
+  return ()=>{
+    document.removeEventListener("mousedown",handleClickOutside);
+  }
+},[emojiRef])
+
+  const handleAddEmoji=(emoji:any)=>{
+    setMessage((msg:String)=>msg+emoji.emoji as String)
+  }
   // Filter conversations based on search query
   const filteredConversations = conversations.filter((conversation) =>
     conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -218,6 +254,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+      
       {/* Mobile navigation */}
       <Sheet open={!mobileView} onOpenChange={setMobileView}>
         <SheetContent side="left" className="p-0 w-full max-w-[320px] sm:max-w-sm">
@@ -268,38 +305,7 @@ export default function ChatPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Phone className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Call</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Video className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Video Call</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>More options</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              
             </div>
 
             {/* Messages */}
@@ -366,8 +372,8 @@ export default function ChatPage() {
             </ScrollArea>
 
             {/* Message input */}
-            <div className="border-t p-4 bg-background">
-              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <div className="border-t p-4 bg-background ">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2 ">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -389,26 +395,36 @@ export default function ChatPage() {
                   </Tooltip>
                 </TooltipProvider>
                 <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type a message..."
                   className="flex-1 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                      <Button type="button" onClick={()=>setEmojiPickerOpen(true)} variant="ghost" size="icon" className="text-blue-500">
                         <Smile className="h-5 w-5" />
                       </Button>
+                      
                     </TooltipTrigger>
+                    <div className="absolute bottom-[10px] right-0 " ref={emojiRef}>
+                    <EmojiPicker
+                    open={emojiPickerOpen}
+                    onEmojiClick={handleAddEmoji} 
+                    autoFocusSearch={false}/>
+                  </div>
                     <TooltipContent>Emoji</TooltipContent>
                   </Tooltip>
+                
                 </TooltipProvider>
                 <Button
                   type="submit"
+                  onClick={handleSendMessage}
                   size="icon"
                   className="bg-blue-600 hover:bg-blue-700"
-                  disabled={newMessage.trim() === ""}
+                  disabled={message.trim() === ""}
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -442,26 +458,17 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">WaveChat</h1>
           <div className="flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Bell className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Settings</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="text-blue-500 cursor-pointer">
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Create Group</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
           </div>
         </div>
         <div className="relative">
@@ -489,7 +496,7 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
           </TabsList>
         </div>
         <TabsContent value="all" className="m-0">
-          <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
+          <ScrollArea className="flex-1 h-[calc(90vh-13rem)]">
             <div className="p-2 space-y-1">
               {conversations.map((conversation:any) => (
                 <button
@@ -565,7 +572,7 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
           </ScrollArea>
         </TabsContent>
         <TabsContent value="groups" className="m-0">
-          <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
+          <ScrollArea className="flex-1 h-[calc(50vh-13rem)]">
             <div className="p-2 space-y-1">
               {conversations
                 .filter((conversation:any) => conversation.group)
@@ -603,7 +610,7 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
           </ScrollArea>
         </TabsContent>
       </Tabs>
-      <div className="mt-auto border-t p-4">
+      <div className="mt-auto border-t p-4 position-fixed">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar>
@@ -629,9 +636,7 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <LogOut className="h-5 w-5" />
-                  </Button>
+                <Logout/>
                 </TooltipTrigger>
                 <TooltipContent>Sign out</TooltipContent>
               </Tooltip>
