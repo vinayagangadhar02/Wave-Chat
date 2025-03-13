@@ -29,7 +29,7 @@ import axiosInstance from "@/axios/axios"
 // Sample data for conversations
 const conversations = [
   {
-    id: 1,
+    id: "3e18aebb-a220-44a2-9fab-0f5182aec434",
     name: "Sarah Johnson",
     avatar: "/placeholder.svg?height=40&width=40",
     lastMessage: "Hey, how's it going?",
@@ -38,7 +38,7 @@ const conversations = [
     online: true,
   },
   {
-    id: 2,
+    id: "e5ab4984-1bf1-409f-b076-e1e45a55a0f0",
     name: "Design Team",
     avatar: "/placeholder.svg?height=40&width=40",
     lastMessage: "Meeting at 3 PM",
@@ -47,113 +47,7 @@ const conversations = [
     group: true,
     members: ["Sarah Johnson", "Alex Thompson", "You"],
   },
-  {
-    id: 3,
-    name: "Alex Thompson",
-    avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Can you send me the files?",
-    time: "Yesterday",
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 4,
-    name: "Project Alpha",
-    avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Let's discuss the timeline",
-    time: "Monday",
-    unread: 5,
-    group: true,
-    members: ["Sarah Johnson", "Alex Thompson", "Michael Chen", "You"],
-  },
-  {
-    id: 5,
-    name: "Michael Chen",
-    avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Thanks for your help!",
-    time: "Monday",
-    unread: 0,
-    online: true,
-  },
-  {
-    id: 6,
-    name: "Jessica Williams",
-    avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Looking forward to seeing you!",
-    time: "Last week",
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 7,
-    name: "Marketing Team",
-    avatar: "/placeholder.svg?height=40&width=40",
-    lastMessage: "Campaign updates",
-    time: "Last week",
-    unread: 0,
-    group: true,
-    members: ["Jessica Williams", "Michael Chen", "You"],
-  },
-]
-
-// Sample messages for a conversation
-const sampleMessages = [
-  {
-    id: 1,
-    sender: "Sarah Johnson",
-    content: "Hey there! How's your day going?",
-    time: "10:30 AM",
-    isUser: false,
-  },
-  {
-    id: 2,
-    sender: "You",
-    content: "Hi Sarah! It's going well, thanks for asking. Just finishing up some work.",
-    time: "10:32 AM",
-    isUser: true,
-  },
-  {
-    id: 3,
-    sender: "Sarah Johnson",
-    content: "That's great to hear! Are you still planning to join the team meeting later today?",
-    time: "10:33 AM",
-    isUser: false,
-  },
-  {
-    id: 4,
-    sender: "You",
-    content: "Yes, definitely! I've prepared some notes for the discussion.",
-    time: "10:35 AM",
-    isUser: true,
-  },
-  {
-    id: 5,
-    sender: "Sarah Johnson",
-    content: "Perfect! Looking forward to hearing your thoughts. By the way, have you seen the latest project updates?",
-    time: "10:36 AM",
-    isUser: false,
-  },
-  {
-    id: 6,
-    sender: "You",
-    content: "Not yet, I'll check them out before the meeting. Anything specific I should focus on?",
-    time: "10:38 AM",
-    isUser: true,
-  },
-  {
-    id: 7,
-    sender: "Sarah Johnson",
-    content: "The new design mockups are really impressive. I think they align well with what we discussed last week.",
-    time: "10:40 AM",
-    isUser: false,
-  },
-  {
-    id: 8,
-    sender: "Sarah Johnson",
-    content: "Also, the client feedback has been positive so far!",
-    time: "10:40 AM",
-    isUser: false,
-  },
+ 
 ]
 
 export default function ChatPage() {
@@ -161,30 +55,14 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<any>([])
   const [newMessage, setNewMessage] = useState<any>("")
   const [isTyping, setIsTyping] = useState<any>(false)
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [searchedContacts,setSearchedContacts]=useState([])
+ 
+ 
   const [mobileView, setMobileView] = useState<any>(false)
   const messagesEndRef = useRef<any>(null)
   const [message, setMessage] = useState<any>("")
   const emojiRef = useRef<any>(null)
   const[emojiPickerOpen,setEmojiPickerOpen]=useState<boolean>(false)
-  
-  const searchContacts = async () => {
-    try {
-      if (searchQuery.length > 0) {
-        const response = await axiosInstance.get(`/search`, {
-          params: { searchQuery }
-        });
-  
-        if (response?.status === 200) { 
-          setSearchedContacts(response.data.contacts); 
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  
+
   
 
 
@@ -204,14 +82,14 @@ useEffect(()=>{
     setMessage((msg:String)=>msg+emoji.emoji as String)
   }
   // Filter conversations based on search query
-  const filteredConversations = conversations.filter((conversation) =>
-    conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // const filteredConversations = conversations.filter((conversation) =>
+  //   conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  // )
 
   // Set active conversation and load messages
   useEffect(() => {
     if (activeConversation) {
-      setMessages(sampleMessages)
+      setMessages(setMessages)
       setMobileView(true)
     }
   }, [activeConversation])
@@ -259,11 +137,10 @@ useEffect(()=>{
       <Sheet open={!mobileView} onOpenChange={setMobileView}>
         <SheetContent side="left" className="p-0 w-full max-w-[320px] sm:max-w-sm">
           <ChatSidebar
-            conversations={filteredConversations}
+            conversations={conversations}
             activeConversation={activeConversation}
             setActiveConversation={setActiveConversation}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+           
           />
         </SheetContent>
       </Sheet>
@@ -271,11 +148,10 @@ useEffect(()=>{
       {/* Desktop sidebar */}
       <div className={cn("hidden md:block w-80 border-r bg-background", mobileView && "md:block")}>
         <ChatSidebar
-          conversations={filteredConversations}
+          conversations={conversations}
           activeConversation={activeConversation}
           setActiveConversation={setActiveConversation}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          
         />
       </div>
 
@@ -290,9 +166,9 @@ useEffect(()=>{
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <Avatar>
-                  <AvatarImage src={activeConversation.avatar} alt={activeConversation.name} />
-                  <AvatarFallback>{activeConversation.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+         <AvatarImage src={activeConversation?.avatar} alt={activeConversation?.name} />
+          <AvatarFallback>{activeConversation?.name?.charAt(0) || "?"}</AvatarFallback>
+           </Avatar>
                 <div>
                   <h2 className="font-semibold">{activeConversation.name}</h2>
                   {activeConversation.online && !activeConversation.group && (
@@ -451,7 +327,30 @@ useEffect(()=>{
   )
 }
 
-function ChatSidebar({ conversations, activeConversation, setActiveConversation, searchQuery, setSearchQuery }:any) {
+function ChatSidebar({ conversations, activeConversation, setActiveConversation }:any) {
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [searchedContacts,setSearchedContacts]=useState([])
+
+  useEffect(()=>{
+  const searchContacts = async () => {
+    try {
+      if (searchQuery.length > 0) {
+        const response = await axiosInstance.get(`/search`, {
+          params: { searchQuery }
+        });
+  
+        if (response?.status === 200) { 
+          console.log(response)
+          setSearchedContacts(response.data); 
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  searchContacts();
+},[searchQuery])
+  
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
@@ -498,33 +397,33 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation,
         <TabsContent value="all" className="m-0">
           <ScrollArea className="flex-1 h-[calc(90vh-13rem)]">
             <div className="p-2 space-y-1">
-              {conversations.map((conversation:any) => (
+              {searchedContacts.map((contacts:any) => (
                 <button
-                  key={conversation.id}
+                  key={contacts.id}
                   className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
-                    activeConversation?.id === conversation.id
+                    activeConversation?.id === contacts.id
                       ? "bg-blue-100 dark:bg-blue-900/50"
                       : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
                   }`}
-                  onClick={() => setActiveConversation(conversation)}
+                  onClick={() => setActiveConversation(conversations)}
                 >
                   <div className="relative">
                     <Avatar>
-                      <AvatarImage src={conversation.avatar} alt={conversation.name} />
-                      <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage  alt={contacts.f_name} />
+                      <AvatarFallback>{contacts.f_name.charAt(0)}{contacts.l_name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    {conversation.online && !conversation.group && (
+                    {conversations.online && !conversations.group && (
                       <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
                     )}
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium truncate">{conversation.name}</h3>
-                      <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                      <h3 className="font-medium truncate">{contacts.f_name}<span> </span>{contacts.l_name}</h3>
+                      <span className="text-xs text-muted-foreground">{contacts.email}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
-                      {conversation.unread > 0 && <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>}
+                      <p className="text-sm text-muted-foreground truncate">{conversations.lastMessage}</p>
+                      {conversations.unread > 0 && <Badge className="ml-auto bg-blue-600">{conversations.unread}</Badge>}
                     </div>
                   </div>
                 </button>

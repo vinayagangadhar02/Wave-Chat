@@ -37,8 +37,9 @@ export default function SignUp() {
         email: formData.email,
         password: formData.password,
       });
-       
-      console.log("User registered:", response.data);
+
+      localStorage.setItem("jwttoken",response.data.token)
+    
       navigate("/chat"); 
 
     } 

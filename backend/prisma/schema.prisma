@@ -14,10 +14,32 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement()) 
+  id       String @id @default(uuid()) 
   f_name   String
   l_name   String
   email    String @unique
   password String
+
+  sentMessages     Message[] @relation(name: "SentMessages")
+  receivedMessages Message[] @relation(name: "ReceivedMessages")
 }
+
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  recipientId String?
+  messageType MessageType
+  content     String?  
+  fileUrl     String?
+  timestamp   DateTime @default(now())
+
+  sender      User     @relation(fields: [senderId], references: [id], name: "SentMessages")
+  recipient   User?    @relation(fields: [recipientId], references: [id], name: "ReceivedMessages")
+}
+
+enum MessageType {
+  text
+  file
+}
+
 
