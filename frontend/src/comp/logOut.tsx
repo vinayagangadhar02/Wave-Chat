@@ -8,7 +8,7 @@ const Logout = () => {
 
   const handleLogout = () => {
     try {
-      localStorage.removeItem("jwttoken");
+      localStorage.removeItem("token");
       navigate("/");
     } catch (e) {
       console.log(e);
@@ -21,7 +21,7 @@ const Logout = () => {
        <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="button" onClick={handleLogout} variant="ghost" size="icon" className="text-blue-500">
+                      <Button type="button" onClick={handleLogout} variant="ghost" size="icon" className="text-blue-700 cursor-pointer">
                         <LogOut className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>

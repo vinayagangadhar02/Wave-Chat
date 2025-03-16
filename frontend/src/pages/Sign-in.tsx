@@ -8,9 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff, Github, Mail } from "lucide-react"
+import { Eye, EyeOff, Mail } from "lucide-react"
 import { toast } from "sonner";
 
 
@@ -35,7 +33,7 @@ export default function SignIn() {
         password: formData.password,
       });
       
-      localStorage.setItem("jwttoken",response.data.token)
+      localStorage.setItem("token",response.data.token)
       navigate("/chat"); 
 
     } catch (error:any) {
@@ -95,9 +93,7 @@ export default function SignIn() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline dark:text-blue-400">
-                  Forgot password?
-                </Link>
+               
               </div>
               <div className="relative">
                 {showPassword ? (
@@ -121,30 +117,14 @@ export default function SignIn() {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="remember" />
-              <Label htmlFor="remember" className="text-sm">
-                Remember me
-              </Label>
-            </div>
+          
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
-          <div className="mt-4 flex items-center">
-            <Separator className="flex-grow" />
-            <span className="mx-2 text-xs text-muted-foreground">OR CONTINUE WITH</span>
-            <Separator className="flex-grow" />
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-2">
-            <Button variant="outline" className="w-full">
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-          </div>
-        </CardContent>
+         
+        </CardContent> 
         <CardFooter>
           <p className="text-center text-sm text-muted-foreground w-full">
             Don't have an account?{" "}

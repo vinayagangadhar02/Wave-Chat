@@ -1,9 +1,9 @@
 import express from "express";
-import  searchContacts  from "../controllers/searchController.js"
+import { editUser } from "../controllers/editController.js";
 import { authentication } from "../middlewares/authMiddleware.js";
-
 const router = express.Router();
 
-router.get("/search",authentication, searchContacts);
+router.put("/edit", authentication,editUser);
+
 
 export default router;

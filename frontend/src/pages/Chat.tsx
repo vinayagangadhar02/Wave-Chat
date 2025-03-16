@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import Logout from "@/comp/logOut"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import EmojiPicker from 'emoji-picker-react';
+import { useState, useRef, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Logout from "@/comp/logOut";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import EmojiPicker from "emoji-picker-react";
 import {
   Check,
   ChevronLeft,
+  Edit,
   FileImage,
   MessageSquare,
   Plus,
@@ -22,9 +28,9 @@ import {
   Send,
   Smile,
   User,
-  
-} from "lucide-react"
-import axiosInstance from "@/axios/axios"
+} from "lucide-react";
+import axiosInstance from "@/axios/axios";
+import ProfileEditModal from "./ProfileEditModal";
 
 // Sample data for conversations
 const conversations = [
@@ -47,40 +53,35 @@ const conversations = [
     group: true,
     members: ["Sarah Johnson", "Alex Thompson", "You"],
   },
- 
-]
+];
 
 export default function ChatPage() {
-  const [activeConversation, setActiveConversation] = useState<any>(null)
-  const [messages, setMessages] = useState<any>([])
-  const [newMessage, setNewMessage] = useState<any>("")
-  const [isTyping, setIsTyping] = useState<any>(false)
- 
- 
-  const [mobileView, setMobileView] = useState<any>(false)
-  const messagesEndRef = useRef<any>(null)
-  const [message, setMessage] = useState<any>("")
-  const emojiRef = useRef<any>(null)
-  const[emojiPickerOpen,setEmojiPickerOpen]=useState<boolean>(false)
+  const [activeConversation, setActiveConversation] = useState<any>(null);
+  const [messages, setMessages] = useState<any>([]);
+  const [newMessage, setNewMessage] = useState<any>("");
+  const [isTyping, setIsTyping] = useState<any>(false);
 
-  
+  const [mobileView, setMobileView] = useState<any>(false);
+  const messagesEndRef = useRef<any>(null);
+  const [message, setMessage] = useState<any>("");
+  const emojiRef = useRef<any>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState<boolean>(false);
 
-
-useEffect(()=>{
-  function handleClickOutside(event:any){
-    if(emojiRef.current && !emojiRef.current.contains(event.target)){
-      setEmojiPickerOpen(false)
+  useEffect(() => {
+    function handleClickOutside(event: any) {
+      if (emojiRef.current && !emojiRef.current.contains(event.target)) {
+        setEmojiPickerOpen(false);
+      }
     }
-  }
-  document.addEventListener("mousedown",handleClickOutside);
-  return ()=>{
-    document.removeEventListener("mousedown",handleClickOutside);
-  }
-},[emojiRef])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [emojiRef]);
 
-  const handleAddEmoji=(emoji:any)=>{
-    setMessage((msg:String)=>msg+emoji.emoji as String)
-  }
+  const handleAddEmoji = (emoji: any) => {
+    setMessage((msg: String) => (msg + emoji.emoji) as String);
+  };
   // Filter conversations based on search query
   // const filteredConversations = conversations.filter((conversation) =>
   //   conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -89,69 +90,80 @@ useEffect(()=>{
   // Set active conversation and load messages
   useEffect(() => {
     if (activeConversation) {
-      setMessages(setMessages)
-      setMobileView(true)
+      setMessages(setMessages);
+      setMobileView(true);
     }
-  }, [activeConversation])
+  }, [activeConversation]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Handle sending a new message
-  const handleSendMessage = (e:any) => {
-    e.preventDefault()
-    if (newMessage.trim() === "") return
+  const handleSendMessage = (e: any) => {
+    e.preventDefault();
+    if (newMessage.trim() === "") return;
 
     const newMsg = {
       id: messages.length + 1,
       sender: "You",
       content: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       isUser: true,
-    }
+    };
 
-    setMessages([...messages, newMsg])
-    setNewMessage("")
+    setMessages([...messages, newMsg]);
+    setNewMessage("");
 
     // Simulate response with typing indicator
-    setIsTyping(true)
+    setIsTyping(true);
     setTimeout(() => {
       const response = {
         id: messages.length + 2,
         sender: activeConversation?.name || "User",
         content: "Thanks for your message! I'll get back to you soon.",
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         isUser: false,
-      }
-      setMessages((prev:any) => [...prev, response])
-      setIsTyping(false)
-    }, 2000)
-  }
+      };
+      setMessages((prev: any) => [...prev, response]);
+      setIsTyping(false);
+    }, 2000);
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
-      
       {/* Mobile navigation */}
       <Sheet open={!mobileView} onOpenChange={setMobileView}>
-        <SheetContent side="left" className="p-0 w-full max-w-[320px] sm:max-w-sm">
+        <SheetContent
+          side="left"
+          className="p-0 w-full max-w-[320px] sm:max-w-sm"
+        >
           <ChatSidebar
             conversations={conversations}
             activeConversation={activeConversation}
             setActiveConversation={setActiveConversation}
-           
           />
         </SheetContent>
       </Sheet>
 
       {/* Desktop sidebar */}
-      <div className={cn("hidden md:block w-80 border-r bg-background", mobileView && "md:block")}>
+      <div
+        className={cn(
+          "hidden md:block w-80 border-r bg-background",
+          mobileView && "md:block"
+        )}
+      >
         <ChatSidebar
           conversations={conversations}
           activeConversation={activeConversation}
           setActiveConversation={setActiveConversation}
-          
         />
       </div>
 
@@ -162,44 +174,72 @@ useEffect(()=>{
             {/* Chat header */}
             <div className="flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileView(false)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => setMobileView(false)}
+                >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <Avatar>
-         <AvatarImage src={activeConversation?.avatar} alt={activeConversation?.name} />
-          <AvatarFallback>{activeConversation?.name?.charAt(0) || "?"}</AvatarFallback>
-           </Avatar>
+                  <AvatarImage
+                    src={activeConversation?.avatar}
+                    alt={activeConversation?.name}
+                  />
+                  <AvatarFallback>
+                    {activeConversation?.name?.charAt(0) || "?"}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <h2 className="font-semibold">{activeConversation.name}</h2>
                   {activeConversation.online && !activeConversation.group && (
                     <p className="text-xs text-muted-foreground flex items-center">
-                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span> Online
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>{" "}
+                      Online
                     </p>
                   )}
                   {activeConversation.group && (
-                    <p className="text-xs text-muted-foreground">Group · {activeConversation.members.length} members</p>
+                    <p className="text-xs text-muted-foreground">
+                      Group · {activeConversation.members.length} members
+                    </p>
                   )}
                 </div>
               </div>
-              
             </div>
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages.map((message:any) => (
-                  <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                    <div className={`flex max-w-[70%] ${message.isUser ? "flex-row-reverse" : "flex-row"}`}>
+                {messages.map((message: any) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.isUser ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`flex max-w-[70%] ${
+                        message.isUser ? "flex-row-reverse" : "flex-row"
+                      }`}
+                    >
                       {!message.isUser && (
                         <Avatar className="h-8 w-8 mr-2">
-                          <AvatarImage src={activeConversation.avatar} alt={message.sender} />
-                          <AvatarFallback>{message.sender.charAt(0)}</AvatarFallback>
+                          <AvatarImage
+                            src={activeConversation.avatar}
+                            alt={message.sender}
+                          />
+                          <AvatarFallback>
+                            {message.sender.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
                       )}
                       <div>
                         <div
                           className={`rounded-lg px-4 py-2 ${
-                            message.isUser ? "bg-primary text-primary-foreground" : "bg-blue-100 dark:bg-blue-900/50"
+                            message.isUser
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-blue-100 dark:bg-blue-900/50"
                           }`}
                         >
                           {message.content}
@@ -224,8 +264,13 @@ useEffect(()=>{
                   <div className="flex justify-start">
                     <div className="flex max-w-[70%]">
                       <Avatar className="h-8 w-8 mr-2">
-                        <AvatarImage src={activeConversation.avatar} alt={activeConversation.name} />
-                        <AvatarFallback>{activeConversation.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={activeConversation.avatar}
+                          alt={activeConversation.name}
+                        />
+                        <AvatarFallback>
+                          {activeConversation.name.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="rounded-lg bg-blue-100 px-4 py-2 dark:bg-blue-900/50">
                         <div className="flex space-x-1">
@@ -249,11 +294,19 @@ useEffect(()=>{
 
             {/* Message input */}
             <div className="border-t p-4 bg-background ">
-              <form onSubmit={handleSendMessage} className="flex items-center gap-2 ">
+              <form
+                onSubmit={handleSendMessage}
+                className="flex items-center gap-2 "
+              >
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-blue-500"
+                      >
                         <Plus className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
@@ -263,7 +316,12 @@ useEffect(()=>{
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon" className="text-blue-500">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-blue-500"
+                      >
                         <FileImage className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
@@ -271,7 +329,7 @@ useEffect(()=>{
                   </Tooltip>
                 </TooltipProvider>
                 <Input
-                type="text"
+                  type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type a message..."
@@ -280,20 +338,28 @@ useEffect(()=>{
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="button" onClick={()=>setEmojiPickerOpen(true)} variant="ghost" size="icon" className="text-blue-500">
+                      <Button
+                        type="button"
+                        onClick={() => setEmojiPickerOpen(true)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-blue-500"
+                      >
                         <Smile className="h-5 w-5" />
                       </Button>
-                      
                     </TooltipTrigger>
-                    <div className="absolute bottom-[10px] right-0 " ref={emojiRef}>
-                    <EmojiPicker
-                    open={emojiPickerOpen}
-                    onEmojiClick={handleAddEmoji} 
-                    autoFocusSearch={false}/>
-                  </div>
+                    <div
+                      className="absolute bottom-[10px] right-0 "
+                      ref={emojiRef}
+                    >
+                      <EmojiPicker
+                        open={emojiPickerOpen}
+                        onEmojiClick={handleAddEmoji}
+                        autoFocusSearch={false}
+                      />
+                    </div>
                     <TooltipContent>Emoji</TooltipContent>
                   </Tooltip>
-                
                 </TooltipProvider>
                 <Button
                   type="submit"
@@ -313,7 +379,8 @@ useEffect(()=>{
               <MessageSquare className="h-12 w-12 text-blue-600 mb-4" />
               <h2 className="text-2xl font-bold mb-2">Welcome to WaveChat</h2>
               <p className="text-muted-foreground mb-6">
-                Select a conversation from the sidebar or start a new one to begin chatting.
+                Select a conversation from the sidebar or start a new one to
+                begin chatting.
               </p>
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="mr-2 h-4 w-4" />
@@ -324,50 +391,80 @@ useEffect(()=>{
         )}
       </div>
     </div>
-  )
+  );
 }
 
-function ChatSidebar({ conversations, activeConversation, setActiveConversation }:any) {
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [searchedContacts,setSearchedContacts]=useState([])
+function ChatSidebar({
+  conversations,
+  activeConversation,
+  setActiveConversation,
+}: any) {
+  interface UserProfile {
+    f_name: string;
+    l_name: string;
+    email: string;
+  }
 
-  useEffect(()=>{
-  const searchContacts = async () => {
-    try {
-      if (searchQuery.length > 0) {
-        const response = await axiosInstance.get(`/search`, {
-          params: { searchQuery }
-        });
-  
-        if (response?.status === 200) { 
-          console.log(response)
-          setSearchedContacts(response.data); 
-        }
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchedContacts, setSearchedContacts] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const[isSaved,setIsSaved]=useState<Boolean>(false)
+
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axiosInstance.get("/profile");
+        setProfile(response.data);
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  searchContacts();
-},[searchQuery])
-  
+    };
+    fetchProfile();
+  }, [isSaved]);
+
+  useEffect(() => {
+    const searchContacts = async () => {
+      try {
+        if (searchQuery.length > 0) {
+          const response = await axiosInstance.get("/search", {
+            params: { searchQuery },
+          });
+
+          if (response?.status === 200) {
+            console.log(response);
+            setSearchedContacts(response.data);
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    searchContacts();
+  }, [searchQuery]);
+
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">WaveChat</h1>
           <div className="flex items-center gap-1">
-          <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon" className="text-blue-500 cursor-pointer">
-                        <Plus className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Create Group</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 cursor-pointer"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create Group</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         <div className="relative">
@@ -383,13 +480,13 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
       <Tabs defaultValue="all" className="w-full">
         <div className="px-4 pt-2">
           <TabsList className="w-full">
-            <TabsTrigger value="all" className="flex-1">
+            <TabsTrigger value="all" className="flex-1 cursor-pointer">
               All
             </TabsTrigger>
-            <TabsTrigger value="unread" className="flex-1">
+            <TabsTrigger value="unread" className="flex-1 cursor-pointer">
               Unread
             </TabsTrigger>
-            <TabsTrigger value="groups" className="flex-1">
+            <TabsTrigger value="groups" className="flex-1 cursor-pointer">
               Groups
             </TabsTrigger>
           </TabsList>
@@ -397,7 +494,7 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
         <TabsContent value="all" className="m-0">
           <ScrollArea className="flex-1 h-[calc(90vh-13rem)]">
             <div className="p-2 space-y-1">
-              {searchedContacts.map((contacts:any) => (
+              {searchedContacts.map((contacts: any) => (
                 <button
                   key={contacts.id}
                   className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
@@ -409,8 +506,11 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
                 >
                   <div className="relative">
                     <Avatar>
-                      <AvatarImage  alt={contacts.f_name} />
-                      <AvatarFallback>{contacts.f_name.charAt(0)}{contacts.l_name.charAt(0)}</AvatarFallback>
+                      <AvatarImage alt={contacts.f_name} />
+                      <AvatarFallback>
+                        {contacts.f_name.charAt(0)}
+                        {contacts.l_name.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                     {conversations.online && !conversations.group && (
                       <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
@@ -418,12 +518,24 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium truncate">{contacts.f_name}<span> </span>{contacts.l_name}</h3>
-                      <span className="text-xs text-muted-foreground">{contacts.email}</span>
+                      <h3 className="font-medium truncate">
+                        {contacts.f_name}
+                        <span> </span>
+                        {contacts.l_name}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {contacts.email}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate">{conversations.lastMessage}</p>
-                      {conversations.unread > 0 && <Badge className="ml-auto bg-blue-600">{conversations.unread}</Badge>}
+                      <p className="text-sm text-muted-foreground truncate">
+                        {conversations.lastMessage}
+                      </p>
+                      {conversations.unread > 0 && (
+                        <Badge className="ml-auto bg-blue-600">
+                          {conversations.unread}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -435,8 +547,8 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
           <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
             <div className="p-2 space-y-1">
               {conversations
-                .filter((conversation:any) => conversation.unread > 0)
-                .map((conversation:any) => (
+                .filter((conversation: any) => conversation.unread > 0)
+                .map((conversation: any) => (
                   <button
                     key={conversation.id}
                     className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
@@ -448,8 +560,13 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
                   >
                     <div className="relative">
                       <Avatar>
-                        <AvatarImage src={conversation.avatar} alt={conversation.name} />
-                        <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={conversation.avatar}
+                          alt={conversation.name}
+                        />
+                        <AvatarFallback>
+                          {conversation.name.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       {conversation.online && !conversation.group && (
                         <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
@@ -457,12 +574,20 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium truncate">{conversation.name}</h3>
-                        <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                        <h3 className="font-medium truncate">
+                          {conversation.name}
+                        </h3>
+                        <span className="text-xs text-muted-foreground">
+                          {conversation.time}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
-                        <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {conversation.lastMessage}
+                        </p>
+                        <Badge className="ml-auto bg-blue-600">
+                          {conversation.unread}
+                        </Badge>
                       </div>
                     </div>
                   </button>
@@ -474,8 +599,8 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
           <ScrollArea className="flex-1 h-[calc(50vh-13rem)]">
             <div className="p-2 space-y-1">
               {conversations
-                .filter((conversation:any) => conversation.group)
-                .map((conversation:any) => (
+                .filter((conversation: any) => conversation.group)
+                .map((conversation: any) => (
                   <button
                     key={conversation.id}
                     className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
@@ -487,19 +612,32 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
                   >
                     <div className="relative">
                       <Avatar>
-                        <AvatarImage src={conversation.avatar} alt={conversation.name} />
-                        <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={conversation.avatar}
+                          alt={conversation.name}
+                        />
+                        <AvatarFallback>
+                          {conversation.name.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium truncate">{conversation.name}</h3>
-                        <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                        <h3 className="font-medium truncate">
+                          {conversation.name}
+                        </h3>
+                        <span className="text-xs text-muted-foreground">
+                          {conversation.time}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {conversation.lastMessage}
+                        </p>
                         {conversation.unread > 0 && (
-                          <Badge className="ml-auto bg-blue-600">{conversation.unread}</Badge>
+                          <Badge className="ml-auto bg-blue-600">
+                            {conversation.unread}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -509,15 +647,23 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
           </ScrollArea>
         </TabsContent>
       </Tabs>
-      <div className="mt-auto border-t p-4 position-fixed">
+      <div className=" sticky bottom-0 z-50 mt-auto border-t p-4 position-fixed">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="Your Avatar" />
-              <AvatarFallback>YA</AvatarFallback>
+              <AvatarImage
+                src="/placeholder.svg?height=40&width=40"
+                alt="Your Avatar"
+              />
+              <AvatarFallback className="text-blue-500 font-bold">
+                {profile?.f_name[0]}
+                {profile?.l_name[0]}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium">Your Name</p>
+              <p className="font-medium">
+                {profile?.f_name} {profile?.l_name}
+              </p>
               <p className="text-xs text-muted-foreground">Available</p>
             </div>
           </div>
@@ -525,17 +671,32 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                   <>
+                  <Button
+                    onClick={() => {setIsOpen(true);setIsSaved(false)}}
+                    className="cursor-pointer text-blue-500"
+                    variant="ghost"
+                    size="icon"
+                  >
                     <User className="h-5 w-5" />
                   </Button>
+                 
+                  {profile&&<ProfileEditModal
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    profile={profile}
+                    setIsSaved={setIsSaved}
+                  />}
+                  </>
                 </TooltipTrigger>
-                <TooltipContent>Profile</TooltipContent>
+                <TooltipContent>Edit</TooltipContent>
               </Tooltip>
             </TooltipProvider>
+           
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                <Logout/>
+                  <Logout />
                 </TooltipTrigger>
                 <TooltipContent>Sign out</TooltipContent>
               </Tooltip>
@@ -544,6 +705,5 @@ function ChatSidebar({ conversations, activeConversation, setActiveConversation 
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff, Github, Mail, User } from "lucide-react"
+import { Eye, EyeOff, Mail, User } from "lucide-react"
 import { toast } from "sonner";
 import axiosInstance from "@/axios/axios"
 
@@ -38,7 +37,7 @@ export default function SignUp() {
         password: formData.password,
       });
 
-      localStorage.setItem("jwttoken",response.data.token)
+      localStorage.setItem("token",response.data.token)
     
       navigate("/chat"); 
 
@@ -153,18 +152,7 @@ export default function SignUp() {
             </Button>
           </form>
 
-          <div className="mt-4 flex items-center">
-            <Separator className="flex-grow" />
-            <span className="mx-2 text-xs text-muted-foreground">OR CONTINUE WITH</span>
-            <Separator className="flex-grow" />
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-2">
-            <Button variant="outline" className="w-full">
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-          </div>
+       
         </CardContent>
         <CardFooter>
           <p className="text-center text-sm text-muted-foreground w-full">

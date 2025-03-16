@@ -1,34 +1,60 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import axiosInstance from "@/axios/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate=useNavigate();
+
+  const handleClick = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axiosInstance.get("validateToken", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+   
+
+      if (response.data.success) {
+        navigate("/chat");
+      } else {
+        navigate("sign-in");
+      }
+    } catch (error) {
+      navigate("sign-in");
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
           <div className="mr-4 flex">
-            <Link to="/" className="mr-6 flex items-center space-x-2">
-              <span className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></span>
-              <span className="font-bold">WaveChat</span>
-            </Link>
+           
+              <span className="ml-2 h-7 w-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></span>
+              <span onClick={()=>{document.getElementById('main')?.scrollIntoView({behavior:"smooth"})}} className=" text-lg font-bold cursor-pointer">WaveChat</span>
+           
           </div>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2">
               <Link to="/sign-in">
-                <Button variant="ghost" size="sm">
+                <Button className="cursor-pointer" variant="ghost" size="sm">
                   Sign In
                 </Button>
               </Link>
               <Link to="/sign-up">
-                <Button size="sm">Sign Up</Button>
+                <Button className="cursor-pointer" size="sm">Sign Up</Button>
               </Link>
             </nav>
           </div>
         </div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section id="main" className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="flex flex-col justify-center space-y-4">
@@ -42,17 +68,17 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link to="/chat">
-                    <Button size="lg" className="group">
+                  
+                    <Button onClick={handleClick} size="lg" className="group cursor-pointer">
                       Start Chatting
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
-                  </Link>
-                  <Link to="/features">
-                    <Button size="lg" variant="outline">
+                  
+                  
+                    <Button className="cursor-pointer" onClick={()=>{document.getElementById('features')?.scrollIntoView({behavior:"smooth"})}} size="lg" variant="outline">
                       Learn More
                     </Button>
-                  </Link>
+                
                 </div>
               </div>
               <div className="flex items-center justify-center">
@@ -129,7 +155,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="w-full bg-slate-50 py-12 dark:bg-slate-900/50 md:py-24 lg:py-32">
+        <section id="features" className="w-full bg-slate-50 py-12 dark:bg-slate-900/50 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -220,23 +246,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t bg-background">
-        <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
-          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              &copy; {new Date().getFullYear()} WaveChat. All rights reserved.
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Link to="/terms" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-              Terms
-            </Link>
-            <Link to="/privacy" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-              Privacy
-            </Link>
-          </div>
-        </div>
-      </footer>
+     
     </div>
   )
 }
