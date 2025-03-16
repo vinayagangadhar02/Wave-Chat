@@ -9,17 +9,20 @@ import validateToken from "./routes/validateToken.js"
 import profile from "./routes/profile.js"
 import  editRoutes from "./routes/editRoutes.js";
 
+
 dotenv.config()
 const app=express()
 
 app.use(cors());
 
-app.use(
-    cors({
-      origin: "http://localhost:5174",
+
+
+// app.use(
+//     cors({
+//       origin: "http://localhost:5174",
    
-    })
-  );
+//     })
+//   );
 
 
 app.use(express.json());

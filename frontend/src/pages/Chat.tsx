@@ -56,11 +56,13 @@ const conversations = [
 ];
 
 export default function ChatPage() {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchedContacts, setSearchedContacts] = useState([]);
   const [activeConversation, setActiveConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any>([]);
   const [newMessage, setNewMessage] = useState<any>("");
   const [isTyping, setIsTyping] = useState<any>(false);
-
+  const [activeId,setActiveId]=useState<String>("")
   const [mobileView, setMobileView] = useState<any>(false);
   const messagesEndRef = useRef<any>(null);
   const [message, setMessage] = useState<any>("");
@@ -149,6 +151,11 @@ export default function ChatPage() {
             conversations={conversations}
             activeConversation={activeConversation}
             setActiveConversation={setActiveConversation}
+            searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchedContacts={searchedContacts}
+          setSearchedContacts={setSearchedContacts}
+          setActiveId={setActiveId}
           />
         </SheetContent>
       </Sheet>
@@ -164,6 +171,11 @@ export default function ChatPage() {
           conversations={conversations}
           activeConversation={activeConversation}
           setActiveConversation={setActiveConversation}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchedContacts={searchedContacts}
+          setSearchedContacts={setSearchedContacts}
+          setActiveId={setActiveId}
         />
       </div>
 
@@ -398,20 +410,28 @@ function ChatSidebar({
   conversations,
   activeConversation,
   setActiveConversation,
+  searchQuery,
+  setSearchQuery,
+  searchedContacts,
+  setSearchedContacts,
+  setActiveId
 }: any) {
   interface UserProfile {
+    id:string,
     f_name: string;
     l_name: string;
     email: string;
   }
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchedContacts, setSearchedContacts] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const[isSaved,setIsSaved]=useState<Boolean>(false)
 
-
+  const handleSetActiveConversation = (activeId:string) => {
+    const activeConversation = conversations.find((convo: { id: string; }) => convo.id === activeId);
+    setActiveConversation(activeConversation || null);
+  };
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -556,7 +576,11 @@ function ChatSidebar({
                         ? "bg-blue-100 dark:bg-blue-900/50"
                         : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
                     }`}
-                    onClick={() => setActiveConversation(conversation)}
+                    onClick={() => {
+                      setActiveId(conversation.id);
+                      handleSetActiveConversation(conversation.id);
+                    }}
+                    
                   >
                     <div className="relative">
                       <Avatar>
