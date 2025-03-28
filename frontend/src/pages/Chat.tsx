@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -447,7 +445,8 @@ function ChatSidebar({
   useEffect(() => {
     const searchContacts = async () => {
       try {
-        if (searchQuery.length > 0) {
+        console.log("OKOK")
+        // if (searchQuery.length > 0) {
           const response = await axiosInstance.get("/search", {
             params: { searchQuery },
           });
@@ -456,7 +455,7 @@ function ChatSidebar({
             console.log(response);
             setSearchedContacts(response.data);
           }
-        }
+        // }
       } catch (error) {
         console.error(error);
       }

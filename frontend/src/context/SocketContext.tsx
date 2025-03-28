@@ -1,52 +1,42 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
-import { io, Socket } from "socket.io-client";
-import axiosInstance from "@/axios/axios";
+// import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+// import { io, Socket } from "socket.io-client";
 
-interface SocketContextType {
-  socket: Socket | null;
-}
+// interface SocketContextType {
+//   socket: Socket | null;
+// }
 
-const SocketContext = createContext<SocketContextType | null>(null);
+// const SocketContext = createContext<SocketContextType | null>(null);
 
-export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) throw new Error("useSocket must be used within a SocketProvider");
-  return context;
-};
+// export const useSocket = () => {
+//   const context = useContext(SocketContext);
+//   if (!context) throw new Error("useSocket must be used within a SocketProvider");
+//   return context;
+// };
 
-interface SocketProviderProps {
-  children: ReactNode;
-}
+// interface SocketProviderProps {
+//   children: ReactNode;
+// }
 
-export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const socket = useRef<Socket | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axiosInstance.get("/profile");
-        setUserId(response.data.id);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (!userId) return;
+// export const SocketProvider: React.FC<SocketProviderProps> = ( {children}) => {
+//   const socket = useState<Socket | null>(null);
   
-    socket.current = io("http://localhost:3001", { query: { userId } });
+//   useEffect(() => {
+//    const token=localStorage.getItem("token")
   
-    socket.current.on("connect", () => console.log(`Connected: ${socket.current?.id}`));
-    socket.current.on("disconnect", () => console.log("Disconnected"));
+//     socket.current = io("http://localhost:4000" ,{
+//       extraHeaders: {
+//         authorization: 'Bearer ' + token, // Pass the token in auth
+//       }
+//     });
   
-    return () => {
-      socket.current?.disconnect();
-    };
-  }, [userId]);
+//     socket.current.on("connect", () => console.log(`Connected: ${socket.current?.id}`));
+//     socket.current.on("disconnect", () => console.log("Disconnected"));
+  
+//     // return () => {
+//     //   socket.current?.disconnect();
+//     // };
+//   }, []);
   
 
-  return <SocketContext.Provider value={{ socket: socket.current }}>{children}</SocketContext.Provider>;
-};
+//   return <SocketContext.Provider value={{ socket: socket.current }}>{children}</SocketContext.Provider>;
+// };

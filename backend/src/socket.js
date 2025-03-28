@@ -1,83 +1,102 @@
 import { Server } from "socket.io";
 import { PrismaClient } from "@prisma/client";
+import socketAuthMiddleware from "./socketAuth.js";
 
 const prisma = new PrismaClient();
 
 const setUpSocket = (server) => {
-
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5174",
-      methods: ["GET", "POST"]
-    }
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
   });
 
   const userSocketMap = new Map();
-  
-  io.on("connection", (socket) => {
-    const userId = socket.handshake.query.userId;
 
-    if (userId) {
-      userSocketMap.set(userId, socket.id);
-      console.log(`User connected: ${userId} with socket ID: ${socket.id}`);
-    } else {
-      console.log("User ID not provided during connection");
+  io.use(socketAuthMiddleware); // Apply authentication middleware
+
+  io.on("connection", async (socket) => {
+    const userId = socket.user.id; // Retrieved from middleware
+    socket.emit("sendMessage", {
+      recipientId: "36f421db-ad9d-47f6-9063-4f111167c3b2",
+      messageType: "text",
+      content: "Hello from client"
+    });
+    console.log(`✅ User connected: ${userId} with socket ID: ${socket.id}`);
+
+    if (!userSocketMap.has(userId)) {
+      userSocketMap.set(userId, new Set());
     }
+    userSocketMap.get(userId).add(socket.id);
 
-    socket.on("sendMessage", async (message) => {
-      await sendMessage(message, io);
+    // Register event handlers
+    socket.on("sendMessage", async (messageData) => {
+      try {
+        console.log("helllllloooo")
+        const { recipientId, messageType, content, fileUrl } = messageData;
+        const senderId = userId;
+
+        // Save message to DB
+        const newMessage = await prisma.message.create({
+          data: {
+            senderId,
+            recipientId,
+            messageType,
+            content,
+            fileUrl: fileUrl || null,
+            status: userSocketMap.has(recipientId) ? "read" : "unread",
+          },
+        });
+
+        sendToUser(senderId, "newMessage", newMessage);
+        sendToUser(recipientId, "newMessage", newMessage);
+      } catch (error) {
+        socket.emit("error", { message: "Failed to send message" });
+      }
     });
-    
 
+    // Handle disconnect
     socket.on("disconnect", () => {
-      disconnect(socket);
+      console.log(`❌ Client Disconnected: ${socket.id}, User: ${userId}`);
+      disconnect(socket, userId);
     });
+
+    // Fetch unread messages
+    const unreadMessages = await prisma.message.findMany({
+      where: { recipientId: userId, status: "unread" },
+    });
+
+    unreadMessages.forEach((message) => {
+      socket.emit("newMessage", message);
+    });
+
+    await prisma.message.updateMany({
+      where: { recipientId: userId, status: "unread" },
+      data: { status: "read" },
+    });
+
+    socket.emit("ready");
   });
-  const disconnect = (socket) => {
-    console.log(`Client Disconnected: ${socket.id}`);
-    for (const [userId, socketId] of userSocketMap.entries()) {
-      if (socketId === socket.id) {
+
+  const sendToUser = (userId, event, data) => {
+    const userSockets = userSocketMap.get(userId) || new Set();
+    userSockets.forEach((socketId) => {
+      io.to(socketId).emit(event, data);
+    });
+  };
+
+  const disconnect = (socket, userId) => {
+    if (userSocketMap.has(userId)) {
+      const socketIds = userSocketMap.get(userId);
+      socketIds.delete(socket.id);
+      if (socketIds.size === 0) {
         userSocketMap.delete(userId);
-        break;
       }
     }
   };
 
-  const sendMessage = async (message,io) => {
-    if (!message.senderId || !message.recipientId || !message.content || !message.messageType) {
-      console.error("Invalid message data:", message);
-      return;
-    }
-    
-
-    const senderSocketId = userSocketMap.get(message.senderId);
-   const recipientSocketId = userSocketMap.get(message.recipientId);
-
-
-    const createMessage = await prisma.message.create({
-      data: {
-        senderId: message.senderId,
-        recipientId: message.recipientId,
-        messageType: message.messageType,
-        content: message.content,
-        fileUrl: message.fileUrl || null,
-      },
-    });
-    
-
-    const messageData = await prisma.message.findUnique({
-      where: { id: createMessage.id },
-      include: {
-        sender: { select: { id: true, f_name: true, l_name: true } },
-        recipient: { select: { id: true, f_name: true, l_name: true } },
-      },
-    });
-
-    if (recipientSocketId) io.to(recipientSocketId).emit("newMessage", messageData);
-    if (senderSocketId) io.to(senderSocketId).emit("newMessage", messageData);
-  };
   return io;
-  
 };
 
 export default setUpSocket;

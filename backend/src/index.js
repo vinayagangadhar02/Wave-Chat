@@ -8,6 +8,7 @@ import me from "./routes/me.js"
 import validateToken from "./routes/validateToken.js"
 import profile from "./routes/profile.js"
 import  editRoutes from "./routes/editRoutes.js";
+import { authentication } from "./middlewares/authMiddleware.js";
 
 
 dotenv.config()
@@ -17,12 +18,12 @@ app.use(cors());
 
 
 
-// app.use(
-//     cors({
-//       origin: "http://localhost:5174",
+app.use(
+    cors({
+      origin: "http://localhost:5173",
    
-//     })
-//   );
+    })
+  );
 
 
 app.use(express.json());
@@ -33,9 +34,9 @@ app.use('/api',validateToken)
 app.use('/api',profile)
 app.use('/api',editRoutes)
 
-const server=app.listen(3001,()=>{
+const server=app.listen(4000,()=>{
     console.log("server started")
 })
 
 
-setUpSocket(server)
+ setUpSocket(server);
