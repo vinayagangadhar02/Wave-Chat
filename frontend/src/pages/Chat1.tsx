@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sheet, SheetContent} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import EmojiPicker from "emoji-picker-react";
 import {
@@ -29,57 +29,28 @@ import {
 } from "lucide-react";
 import axiosInstance from "@/axios/axios";
 import ProfileEditModal from "./ProfileEditModal";
-import { io, Socket } from "socket.io-client";
-import dayjs from "dayjs";
-
-
 
 
 export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchedContacts, setSearchedContacts] = useState<any[]>([]);
-  const [activeId, setActiveId] = useState<string>("");
+  const [searchedContacts, setSearchedContacts] = useState([]);
   const [activeConversation, setActiveConversation] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [messages, setMessages] = useState([]);
-  const [senderId, setSenderId] = useState<string>("");
+  const [messages, setMessages] = useState<any>([]);
+  const [newMessage, setNewMessage] = useState<any>("");
+  const [activeId,setActiveId]=useState<String>("")
+  const [message,setMessage]=useState<String>("")
 
-
-  const emojiRef = useRef<HTMLDivElement>(null);
+  const emojiRef = useRef<any>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState<boolean>(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<any>(null);
 
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [mobileView, setMobileView] = useState<boolean>(false);
-  
+  const [isTyping, setIsTyping] = useState<any>(false);
+  const [mobileView, setMobileView] = useState<any>(false);
  
-  
-  const [messageStatus, setMessageStatus] = useState<{ [key: string]: "read" | "unread" }>({});
-  const socket = useRef<Socket | null>(null);
 
-
-  
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    socket.current = io("http://localhost:4000", {
-      extraHeaders: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    socket.current.on("connect", () => console.log(`Connected: ${socket.current?.id}`));
-    socket.current.on("disconnect", () => console.log("Disconnected"));
-
-    return () => {
-      socket.current?.disconnect(); 
-    };
-  }, []);
-
-  
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (emojiRef.current && !emojiRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: any) {
+      if (emojiRef.current && !emojiRef.current.contains(event.target)) {
         setEmojiPickerOpen(false);
       }
     }
@@ -90,128 +61,77 @@ export default function ChatPage() {
   }, [emojiRef]);
 
   const handleAddEmoji = (emoji: any) => {
-    setNewMessage((msg) => msg + emoji.emoji);
+    setMessage((msg: String) => (msg + emoji.emoji) as String);
   };
-  
-
+ 
   useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        const response = await axiosInstance.get("/details", {
-          params: { id: activeId },
-        });
-        setActiveConversation(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchDetails();
-  }, [activeId]);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await axiosInstance.get("/getMessages", {
-        params: { senderId:senderId,
-                 recipientId:activeId
-        },
-      });
-      setMessages(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchMessages();
-  }, [activeId]);
-  
-
-
-  const handleSendMessage = () => {
-    if (!socket.current) {
-      console.warn("Socket not ready yet!");
-      return;
-    }
-
-    socket.current.emit("sendMessage", {
-      recipientId: activeId,
-      messageType: "text",
-      content: newMessage,
-    });
-
-    setNewMessage("");
-    // fetchMessages();
-  };
-
-
-  useEffect(() => {
-    const handleNewMessage = () => {
-      fetchMessages();
-    };
     if (activeConversation) {
-      socket.current?.on("newMessage", handleNewMessage);
+      setMessages(setMessages);
       setMobileView(true);
     }
-    return () => {
-      socket.current?.off("newMessage", handleNewMessage);
-    };
   }, [activeConversation]);
 
 
   useEffect(() => {
-    const handleResize = () => {
-      setMobileView(!(window.innerWidth < 640));
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = (e: any) => {
+    e.preventDefault();
+    if (newMessage.trim() === "") return;
+
+    const newMsg = {
+      id: messages.length + 1,
+      sender: "You",
+      content: newMessage,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      isUser: true,
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
+    setMessages([...messages, newMsg]);
+    setNewMessage("");
 
-
-  // Mark messages as read when viewed
-  // const markMessagesAsRead = async () => {
-  //   if (!activeId || !senderId) return;
-  //   try {
-  //     const unreadMessages = messages.filter(
-  //       msg => msg.recipientId === senderId && msg.senderId === activeId && msg.status === "unread"
-  //     );
-  //     if (unreadMessages.length > 0) {
-  //       const messageIds = unreadMessages.map(msg => msg.id);
-  //       await axiosInstance.put("/markMessagesAsRead", { messageIds });
-  //       setMessages(prevMessages => 
-  //         prevMessages.map(msg => 
-  //           messageIds.includes(msg.id) ? { ...msg, status: "read" } : msg
-  //         )
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error marking messages as read:", error);
-  //   }
-  // };
-
+    // Simulate response with typing indicator
+    setIsTyping(true);
+    setTimeout(() => {
+      const response = {
+        id: messages.length + 2,
+        sender: activeConversation?.name || "User",
+        content: "Thanks for your message! I'll get back to you soon.",
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        isUser: false,
+      };
+      setMessages((prev: any) => [...prev, response]);
+      setIsTyping(false);
+    }, 2000);
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
       {/* Mobile navigation */}
-        <Sheet open={!mobileView} onOpenChange={(open)=>{setMobileView(!open)}}>
-          <SheetContent
-            side="left"
-            className="p-0 w-full max-w-[320px] sm:max-w-sm"
-          >
-            <ChatSidebar
-              setMobileView={setMobileView}
-              activeConversation={activeConversation}
-              setActiveConversation={setActiveConversation}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              searchedContacts={searchedContacts}
-              setSearchedContacts={setSearchedContacts}
-              setActiveId={setActiveId}
-              setSenderId={setSenderId}
-            />
-          </SheetContent>
-        </Sheet>
+      <Sheet open={!mobileView} onOpenChange={setMobileView}>
+        <SheetContent
+          side="left"
+          className="p-0 w-full max-w-[320px] sm:max-w-sm"
+        >
+          <ChatSidebar
+            conversations={conversations}
+            activeConversation={activeConversation}
+            setActiveConversation={setActiveConversation}
+            searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchedContacts={searchedContacts}
+          setSearchedContacts={setSearchedContacts}
+          setActiveId={setActiveId}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* Desktop sidebar */}
       <div
@@ -220,10 +140,8 @@ export default function ChatPage() {
           mobileView && "md:block"
         )}
       >
-
-        
-<ChatSidebar
-          setMobileView={setMobileView}
+        <ChatSidebar
+          conversations={conversations}
           activeConversation={activeConversation}
           setActiveConversation={setActiveConversation}
           searchQuery={searchQuery}
@@ -231,9 +149,7 @@ export default function ChatPage() {
           searchedContacts={searchedContacts}
           setSearchedContacts={setSearchedContacts}
           setActiveId={setActiveId}
-          setSenderId={setSenderId}
         />
-
       </div>
 
       {/* Main chat area */}
@@ -241,7 +157,7 @@ export default function ChatPage() {
         {activeConversation ? (
           <>
             {/* Chat header */}
-            <div className="flex items-center justify-between border-b p-4 sticky top-0 z-10">
+            <div className="flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -251,98 +167,75 @@ export default function ChatPage() {
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                {/* <Avatar>
+                <Avatar>
                   <AvatarImage
-                    src={activeConversation.id}
-                    alt={activeConversation?.f_name}
+                    src={activeConversation?.avatar}
+                    alt={activeConversation?.name}
                   />
                   <AvatarFallback>
-                    {activeConversation?.f_name?.charAt(0) || "?"}{activeConversation?.l_name?.charAt(0) || "?"}
+                    {activeConversation?.name?.charAt(0) || "?"}
                   </AvatarFallback>
-                </Avatar> */}
-                 <div className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full font-bold text-lg">
-                 {activeConversation.f_name.charAt(0)}{activeConversation.l_name.charAt(0)}
-    </div>
+                </Avatar>
                 <div>
-                  <h2 className="font-semibold">{activeConversation.f_name} {activeConversation.l_name}</h2>
-                 
+                  <h2 className="font-semibold">{activeConversation.name}</h2>
+                  {activeConversation.online && !activeConversation.group && (
                     <p className="text-xs text-muted-foreground flex items-center">
-                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>{" "}
                       Online
                     </p>
-                 
-                  {/* {activeConversation.group && (
+                  )}
+                  {activeConversation.group && (
                     <p className="text-xs text-muted-foreground">
                       Group · {activeConversation.members.length} members
                     </p>
-                  )} */}
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
+            <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message: any) => (
                   <div
                     key={message.id}
                     className={`flex ${
-                      message.senderId===senderId ? "justify-end" : "justify-start"
+                      message.isUser ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
                       className={`flex max-w-[70%] ${
-                        message.senderId===senderId ? "flex-row-reverse" : "flex-row"
+                        message.isUser ? "flex-row-reverse" : "flex-row"
                       }`}
                     >
-                      {message.senderId!== senderId && (
-                        // <Avatar className="h-8 w-8 mr-2">
-                        //   <AvatarImage
-                        //     src={activeConversation.id}
-                        //     alt={messages.senderId}
-                        //   />
-                        //   <AvatarFallback>
-                        //     {messages.senderId.charAt(0)}
-                        //   </AvatarFallback>
-                        // </Avatar>
-                        <div className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full font-bold text-lg">
-                        {activeConversation.f_name?.charAt(0)} {activeConversation.l_name?.charAt(0)}
-                      </div>
+                      {!message.isUser && (
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarImage
+                            src={activeConversation.avatar}
+                            alt={message.sender}
+                          />
+                          <AvatarFallback>
+                            {message.sender.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
                       )}
                       <div>
                         <div
                           className={`rounded-lg px-4 py-2 ${
-                            message.senderId===senderId
+                            message.isUser
                               ? "bg-primary text-primary-foreground"
                               : "bg-blue-100 dark:bg-blue-900/50"
                           }`}
                         >
                           {message.content}
-                          {message.fileUrl && (
-                            <div className="mt-2">
-                              <a 
-                                href={message.fileUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-500 underline flex items-center"
-                              >
-                                <FileImage className="h-4 w-4 mr-1" />
-                                Attachment
-                              </a>
-                            </div>
-                          )}
                         </div>
                         <div
                           className={`text-xs text-muted-foreground mt-1 ${
-                            message.senderId===senderId ? "text-right" : "text-left"
+                            message.isUser ? "text-right" : "text-left"
                           }`}
                         >
-  <span>
-  {message.timestamp
-    ? dayjs(message.timestamp as string).format('DD-MM-YYYY h:mm A')
-    : 'Invalid date'}
-</span>
-                          {message.senderId===senderId && (
+                          {message.time}
+                          {message.isUser && (
                             <span className="ml-1">
                               <Check className="inline h-3 w-3 text-blue-500" />
                             </span>
@@ -355,18 +248,15 @@ export default function ChatPage() {
                 {isTyping && (
                   <div className="flex justify-start">
                     <div className="flex max-w-[70%]">
-                      {/* <Avatar className="h-8 w-8 mr-2">
+                      <Avatar className="h-8 w-8 mr-2">
                         <AvatarImage
-                          src={activeConversation.f_name}
-                          alt={activeConversation.f_name}
+                          src={activeConversation.avatar}
+                          alt={activeConversation.name}
                         />
                         <AvatarFallback>
-                          {activeConversation.f_name.charAt(0)}
+                          {activeConversation.name.charAt(0)}
                         </AvatarFallback>
-                      </Avatar> */}
-                       <div className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full font-bold text-lg">
-      {activeConversation.f_name?.charAt(0)} {activeConversation.l_name?.charAt(0)}
-    </div>
+                      </Avatar>
                       <div className="rounded-lg bg-blue-100 px-4 py-2 dark:bg-blue-900/50">
                         <div className="flex space-x-1">
                           <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500"></div>
@@ -385,17 +275,17 @@ export default function ChatPage() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-            </div>
+            </ScrollArea>
 
             {/* Message input */}
-            <div className="border-t p-4 bg-background sticky bottom-0 z-10 ">
+            <div className="border-t p-4 bg-background ">
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center gap-2 "
               >
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger asChild >
+                    <TooltipTrigger asChild>
                       <Button
                         type="button"
                         variant="ghost"
@@ -425,8 +315,8 @@ export default function ChatPage() {
                 </TooltipProvider>
                 <Input
                   type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type a message..."
                   className="flex-1 border-blue-100 focus-visible:ring-blue-500 dark:border-blue-900/50"
                 />
@@ -444,15 +334,14 @@ export default function ChatPage() {
                       </Button>
                     </TooltipTrigger>
                     <div
-                      className="absolute bottom-[70px] right-3 "
+                      className="absolute bottom-[10px] right-0 "
                       ref={emojiRef}
                     >
-                      {emojiPickerOpen && (
-                        <EmojiPicker
-                          onEmojiClick={handleAddEmoji}
-                          autoFocusSearch={false}
-                        />
-                      )}
+                      <EmojiPicker
+                        open={emojiPickerOpen}
+                        onEmojiClick={handleAddEmoji}
+                        autoFocusSearch={false}
+                      />
                     </div>
                     <TooltipContent>Emoji</TooltipContent>
                   </Tooltip>
@@ -462,9 +351,9 @@ export default function ChatPage() {
                   onClick={handleSendMessage}
                   size="icon"
                   className="bg-blue-600 hover:bg-blue-700"
-                  disabled={newMessage.trim() === ""}
+                  disabled={message.trim() === ""}
                 >
-                  <Send  className="h-5 w-5" />
+                  <Send className="h-5 w-5" />
                 </Button>
               </form>
             </div>
@@ -491,17 +380,15 @@ export default function ChatPage() {
 }
 
 function ChatSidebar({
-  setMobileView,
+  conversations,
   activeConversation,
   setActiveConversation,
   searchQuery,
   setSearchQuery,
   searchedContacts,
   setSearchedContacts,
-  setActiveId,
-  setSenderId
+  setActiveId
 }: any) {
-
   interface UserProfile {
     id:string,
     f_name: string;
@@ -511,16 +398,18 @@ function ChatSidebar({
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isSaved,setIsSaved]=useState<Boolean>(false)
+  const[isSaved,setIsSaved]=useState<Boolean>(false)
 
-  
+  const handleSetActiveConversation = (activeId:string) => {
+    const activeConversation = conversations.find((convo: { id: string; }) => convo.id === activeId);
+    setActiveConversation(activeConversation || null);
+  };
   
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await axiosInstance.get("/profile");
         setProfile(response.data);
-        setSenderId(response.data.id)
       } catch (error) {
         console.log(error);
       }
@@ -531,6 +420,8 @@ function ChatSidebar({
   useEffect(() => {
     const searchContacts = async () => {
       try {
+        console.log("OKOK")
+        // if (searchQuery.length > 0) {
           const response = await axiosInstance.get("/search", {
             params: { searchQuery },
           });
@@ -539,8 +430,8 @@ function ChatSidebar({
             console.log(response);
             setSearchedContacts(response.data);
           }
-      } 
-      catch (error) {
+        // }
+      } catch (error) {
         console.error(error);
       }
     };
@@ -549,28 +440,27 @@ function ChatSidebar({
 
   return (
     <div className="flex h-full flex-col">
-    <div className="p-4 border-b">
-  <div className="flex items-center mb-4">
-    <h1 className="text-2xl font-[700] ">WaveChat</h1>
-    <div className="ml-auto flex items-center gap-[2px]">
-      <TooltipProvider>
-        <Tooltip >
-          <TooltipTrigger asChild >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-blue-500 cursor-pointer mr-10"
-            >
-              <Plus className="h-5 w-5 " />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Create Group</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  </div>
-
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">WaveChat</h1>
+          <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 cursor-pointer"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create Group</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
@@ -599,19 +489,14 @@ function ChatSidebar({
           <ScrollArea className="flex-1 h-[calc(90vh-13rem)]">
             <div className="p-2 space-y-1">
               {searchedContacts.map((contacts: any) => (
-            
                 <button
                   key={contacts.id}
-                  className={`flex cursor-pointer items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
+                  className={`flex items-center gap-3 w-full rounded-lg p-2 text-left transition-colors ${
                     activeConversation?.id === contacts.id
                       ? "bg-blue-100 dark:bg-blue-900/50"
                       : "hover:bg-blue-50 dark:hover:bg-blue-950/50"
                   }`}
-                  onClick={() =>{ 
-                    setActiveId(contacts.id)
-                    // setMobileView(false)
-                  }
-                  }
+                  onClick={() => setActiveConversation(conversations)}
                 >
                   <div className="relative">
                     <Avatar>
@@ -621,9 +506,9 @@ function ChatSidebar({
                         {contacts.l_name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    {/* {conversations.online && !conversations.group && (
+                    {conversations.online && !conversations.group && (
                       <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
-                    )} */}
+                    )}
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <div className="flex items-center justify-between">
@@ -638,23 +523,21 @@ function ChatSidebar({
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground truncate">
-                        {/* {conversations.lastMessage} */}hello
+                        {conversations.lastMessage}
                       </p>
-                      {/* {conversations.unread > 0 && (
+                      {conversations.unread > 0 && (
                         <Badge className="ml-auto bg-blue-600">
                           {conversations.unread}
                         </Badge>
-                      )} */}
+                      )}
                     </div>
                   </div>
-                 
                 </button>
-             
               ))}
             </div>
           </ScrollArea>
         </TabsContent>
-        {/* <TabsContent value="unread" className="m-0">
+        <TabsContent value="unread" className="m-0">
           <ScrollArea className="flex-1 h-[calc(100vh-13rem)]">
             <div className="p-2 space-y-1">
               {conversations
@@ -760,7 +643,7 @@ function ChatSidebar({
                 ))}
             </div>
           </ScrollArea>
-        </TabsContent> */}
+        </TabsContent>
       </Tabs>
       <div className=" sticky bottom-0 z-50 mt-auto border-t p-4 position-fixed">
         <div className="flex items-center justify-between">

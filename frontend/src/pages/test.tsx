@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 export default function MessageInput() {
   const [message, setMessage] = useState("");
   const [submittedMessage, setSubmittedMessage] = useState("");
-  const socket = useRef<Socket | null>(null); // Use useRef to prevent unnecessary re-renders
+  const socket = useRef<Socket | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -19,7 +19,7 @@ export default function MessageInput() {
     socket.current.on("disconnect", () => console.log("Disconnected"));
 
     return () => {
-      socket.current?.disconnect(); // Cleanup when component unmounts
+      socket.current?.disconnect(); 
     };
   }, []);
 

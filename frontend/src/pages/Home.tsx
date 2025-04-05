@@ -11,21 +11,21 @@ export default function Home() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await axiosInstance.get("validateToken", {
+      const response = await axiosInstance.get("/validateToken", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
    
-
+      console.log(response)
       if (response.data.success) {
         navigate("/chat");
       } else {
-        navigate("sign-in");
+        navigate("/sign-in");
       }
     } catch (error) {
-      navigate("sign-in");
+      navigate("/sign-in");
     }
   };
 

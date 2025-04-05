@@ -18,11 +18,11 @@ const setUpSocket = (server) => {
 
   io.on("connection", async (socket) => {
     const userId = socket.user.id; // Retrieved from middleware
-    socket.emit("sendMessage", {
-      recipientId: "36f421db-ad9d-47f6-9063-4f111167c3b2",
-      messageType: "text",
-      content: "Hello from client"
-    });
+    // socket.emit("sendMessage", {
+    //   recipientId: "36f421db-ad9d-47f6-9063-4f111167c3b2",
+    //   messageType: "text",
+    //   content: "Hello from client"
+    // });
     console.log(`✅ User connected: ${userId} with socket ID: ${socket.id}`);
 
     if (!userSocketMap.has(userId)) {
